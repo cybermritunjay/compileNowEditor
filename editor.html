@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Code Editor</title>
+ <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+<link rel="stylesheet" type="text/css" href="css/bootstrap.css">
+<link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css" rel="stylesheet">
+<link rel="stylesheet" type="text/css" href="css/style.css">
+
+</head>
+<body>
+<div class="container-fluid">
+	<div class="row">
+		<div id="sidebar-code-editor" class="col-md-1 col-sm-1 col-xs-1">
+			<img src="img/user.png" class="img-circle" width="40px" height="40px">
+		</div>
+		<div class="clearfix"></div>
+		<div id="main-code-editor" class="col-md-11 col-sm-11 col-xs-11">
+			<div id="editor-code-editor">
+				<div id="editor">
+					
+				</div>
+        <hr class="editor-seprator">
+				<div id="stdin">
+          <textarea id="input"></textarea>
+        </div>
+			</div>
+      <div id="result">
+        </div>
+			<div id="footer-code-editor">
+				 <select class="languagepicker form-control" data-live-search="true" class="form-control" name="Language" id="mode" onchange="changeMode()">
+	              <option value="7" id="c" selected>C</option>
+	              <option value="7" id="c++">C++</option>
+	              <option value="0" id="python">Python</option>
+	              <option value="8" id="java">Java</option>
+	              <option value="4" id="javascript">Javascript</option>
+	              <option value="3" id="Php">php</option>
+	              <option value="10" id="C-sharp">C-Sharp</option>
+	              <option value="12" id="obj-C">Obj-C</option>
+                <option value="11" id="Bash">Bash</option>
+                <option value="6" id="Go">Go</option>
+                <option value="1" id="Ruby">Ruby</option>
+                <option value="2" id="Clojure">Clojure</option>
+                <option value="5" id="Scala">Scala</option>
+                <option value="15" id="Rust">Rust</option>
+                <option value="13" id="MYSQL">MYSQL</option>
+                <option value="14" id="perl">Perl</option>
+                <option value="9" id="VisualBasic">Visual Basic</option>
+	            </select>
+	            <button id="compile" class="btn btn-success btn-sm"><span class="glyphicon glyphicon-play"></span> Run</button>         
+               <input id="submitCode" class="btn btn-primary text-uppercase btn-sm" value="Submit" disabled>
+			</div>
+		</div>
+		
+	</div>
+	
+</div>
+
+<script type="text/javascript" src="js/jquery.js"></script>
+<script type="text/javascript" src="js/bootstrap.js"></script>
+<script src="js/ace/src/ace.js" type="text/javascript" charset="utf-8"></script>
+<script>
+
+$("#compile").click(function(){
+var editor = ace.edit("editor");
+
+if($('#mode').val()==""){
+  alert("Please select a language");
+}
+else if(editor.getValue()=="")
+{
+  alert("cannot compile empty source");
+}
+else{
+$("#result").html("Compiling... Please Wait");
+
+  var language =$('#mode').val();  
+console.log(language);
+var inputs = $('#input').val();
+inputs = inputs.split(",\n");
+inputs = JSON.stringify(inputs);
+console.log(inputs);
+    $.ajax({
+            url:'http://localhost:5000/api/compile',
+            method: "POST",
+            data:{
+                  token: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7ImlkIjoyODksIm5hbWUiOiJtcml0dW5qYXkiLCJlbWFpbCI6ImN5YmVybXJpdHVuamF5QGdtYWlsLmNvbSJ9LCJpYXQiOjE1Mjg2Njc4NDZ9.R2V3yqz0Qbbun52AKCw-rrcXjEzt1a-GOee-8_T-nNM",
+                  language:language,
+                  code:editor.getValue(),  
+                  input: inputs
+                  }
+                })
+            .done(function(data) {
+                
+                console.log(data);
+                console.log("Output: "+data.output);
+                console.log("Error: "+data.errors);
+                $("#result").html("Output: "+data.output+"\n");
+                if (data.errors !== "undefined") {
+                  $("#result").append("Error: "+data.errors);
+                }
+                
+              })
+            .fail(function( xhr, status, errorThrown ) {
+                    console.log( "Error: " + errorThrown );
+                    console.log( "Status: " + status );
+                    console.dir( xhr );
+                  })
+                  // Code to run regardless of success or failure;
+                  .always(function( xhr, status ) {
+                    console.log( "The request is complete!" );
+                    var send = {
+                  token: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7ImlkIjoyODksIm5hbWUiOiJtcml0dW5qYXkiLCJlbWFpbCI6ImN5YmVybXJpdHVuamF5QGdtYWlsLmNvbSJ9LCJpYXQiOjE1Mjg2Njc4NDZ9.R2V3yqz0Qbbun52AKCw-rrcXjEzt1a-GOee-8_T-nNM",
+                  language:language,
+                  code:editor.getValue(),  
+                  input:inputs
+                  };
+                  console.log(send);
+
+                  });
+
+                           
+    }
+  });
+
+//***********************************************
+    var editor = ace.edit("editor");
+    editor.setTheme("ace/theme/monokai");
+	document.getElementById('editor').style.fontSize='18px';
+	editor.setShowPrintMargin(false);
+	editor.session.setMode("ace/mode/c_cpp");
+	editor.setValue("#include <iostream>\nusing namespace std;\n\nint main() {\n\tcout<<\"Hello\";\n\treturn 0;\n}");
+	editor.clearSelection();
+	editor.$blockScrolling = Infinity;
+
+function changeMode() {
+    var x = document.getElementById("mode");
+    var modeValue = x.options[x.selectedIndex].value;
+    if (modeValue == "0") {
+      editor.session.setMode("ace/mode/python");
+      editor.setValue("print \"Hello\"");
+        editor.clearSelection();
+    }
+    if (modeValue == "1") {
+      editor.session.setMode("ace/mode/ruby");
+      editor.setValue("puts \"Hello\"");
+        editor.clearSelection();
+    }
+    
+    if(modeValue == "2") {
+        editor.session.setMode("ace/mode/clojure");
+        editor.setValue('(println "Hello")');
+        editor.clearSelection();
+    }
+    if (modeValue == "3") {
+      editor.session.setMode("ace/mode/php");
+      editor.setValue("<?php\n$ho = fopen('php://stdout', \"w\");\n\nfwrite($ho, \"Hello\");\n\n\nfclose($ho);\n ?>");
+        editor.clearSelection();
+    }
+    if (modeValue == "4") {
+      editor.session.setMode("ace/mode/javascript");
+      editor.setValue('console.log("Hello, World");\n');
+        editor.clearSelection();
+    }
+    if (modeValue == "5") {
+      editor.session.setMode("ace/mode/scala");
+      editor.setValue("object HelloWorld {def main(args: Array[String]) = println(\"Hello\")}");
+        editor.clearSelection();
+    }
+    if (modeValue == "6") {
+      editor.session.setMode("ace/mode/golang");
+      editor.setValue("package main\nimport \"fmt\"\n\nfunc main(){\n  \n\tfmt.Printf(\"Hello\")\n}");
+        editor.clearSelection();
+    }
+    if (modeValue == "7") {
+      editor.session.setMode("ace/mode/c_cpp");
+      editor.setValue("#include <iostream>\nusing namespace std;\n\nint main() {\n\tcout<<\"Hello\";\n\treturn 0;\n}");
+        editor.clearSelection();
+    }
+    if (modeValue == "8") {
+      editor.session.setMode("ace/mode/java");
+      editor.setValue("/* package whatever; // don't place package name! */\n\nimport java.io.*;\n\nclass myCode\n{\n\tpublic static void main (String[] args) throws java.lang.Exception\n\t{\n\t\t\n\t\tSystem.out.println(\"Hello\");\n\t}\n}");
+        editor.clearSelection();
+    }
+    if (modeValue == "9") {
+      editor.session.setMode("ace/mode/vbscript");
+      editor.setValue("Imports System\n\nPublic Class Test\n\tPublic Shared Sub Main() \n    \tSystem.Console.WriteLine(\"Hello\")\n\tEnd Sub\nEnd Class");
+        editor.clearSelection();
+    }
+    if (modeValue == "10") {
+      editor.session.setMode("ace/mode/csharp");
+      editor.setValue("using System;\n\npublic class Test\n{\n\tpublic static void Main()\n\t{\n\t\t\tConsole.WriteLine(\"Hello\");\n\t}\n}");
+        editor.clearSelection();
+    }
+    if (modeValue == "11") {
+      editor.session.setMode("ace/mode/batchfile");
+      editor.setValue("echo 'Hi' ");
+        editor.clearSelection();
+    }
+    if (modeValue == "12") {
+      editor.session.setMode("ace/mode/objectivec");
+      editor.setValue("#include <Foundation/Foundation.h>\n\n@interface Test\n+ (const char *) classStringValue;\n@end\n\n@implementation Test\n+ (const char *) classStringValue;\n{\n    return \"Hey!\";\n}\n@end\n\nint main(void)\n{\n    printf(\"%s\\n\", [Test classStringValue]);\n    return 0;\n}");
+        editor.clearSelection();
+    }
+    if (modeValue == "13") {
+      editor.session.setMode("ace/mode/mysql");
+      editor.setValue("create table myTable(name varchar(10));\ninsert into myTable values(\"Hello\");\nselect * from myTable;");
+        editor.clearSelection();
+    }
+    if (modeValue == "14") {
+      editor.session.setMode("ace/mode/perl");
+      editor.setValue("use strict;\nuse warnings\n;use v5.14; say 'Hello';");
+        editor.clearSelection();
+    }
+    if (modeValue == "15") {
+      editor.session.setMode("ace/mode/rust");
+      editor.setValue("fn main() {\n\tprintln!(\"Hello\");\n}");
+        editor.clearSelection();
+    }
+}
+</script>
+</body>
+</html>
